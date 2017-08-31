@@ -195,4 +195,5 @@ private[scio] object Functions {
     override def reduceOption(accumulator: Iterable[T]): Option[T] =
       _mon.sumOption(accumulator).orElse(Some(_mon.zero))
   }
+
 }

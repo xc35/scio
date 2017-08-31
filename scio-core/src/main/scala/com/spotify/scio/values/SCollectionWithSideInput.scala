@@ -39,7 +39,22 @@ class SCollectionWithSideInput[T: ClassTag] private[values] (val internal: PColl
 
   protected val ct: ClassTag[T] = implicitly[ClassTag[T]]
 
-  private def parDo[T, U](fn: DoFn[T, U]) = ParDo.of(fn).withSideInputs(sides.map(_.view).asJava)
+  private def parDo[U](fn: DoFn[T, U]) = ParDo.of(fn).withSideInputs(sides.map(_.view).asJava)
+
+  private[values] def nativeParDo[U: ClassTag](f: SideInputContext[T] => Unit)
+  : SCollectionWithSideInput[U] = {
+    val fn = new SideInputDoFn[T, U] {
+      private val g = ClosureCleaner(f)  // defeat closure
+      @ProcessElement
+      private[scio] def processElement(c: DoFn[T, U]#ProcessContext): Unit = {
+        g(sideInputContext(c))
+      }
+    }
+    val o = this
+      .pApply(parDo(fn))
+      .internal.setCoder(this.getCoder)
+    new SCollectionWithSideInput[U](o, context, sides)
+  }
 
   /** [[SCollection.filter]] with an additional [[SideInputContext]] argument. */
   def filter(f: (T, SideInputContext[T]) => Boolean): SCollectionWithSideInput[T] = {
@@ -104,7 +119,7 @@ class SCollectionWithSideInput[T: ClassTag] private[values] (val internal: PColl
       }
     }
 
-    val transform = parDo[T, T](transformWithSideOutputsFn(sideOutputs, f))
+    val transform = parDo[T](transformWithSideOutputsFn(sideOutputs, f))
       .withOutputTags(_mainTag.tupleTag, sideTags)
 
     val pCollectionWrapper = this.internal.apply(name, transform)

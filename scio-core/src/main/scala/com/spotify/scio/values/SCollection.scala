@@ -141,6 +141,16 @@ sealed trait SCollection[T] extends PCollectionWrapper[T] {
     context.wrap(o)
   }
 
+  private[values] def nativeParDo[U: ClassTag](f: DoFn[T, U]#ProcessContext => Unit)
+  : SCollection[U] = {
+    val fn = new DoFn[T, U] {
+      private val g = ClosureCleaner(f)  // defeat closure
+      @ProcessElement
+      private[scio] def processElement(c: DoFn[T, U]#ProcessContext): Unit = g(c)
+    }
+    this.pApply(ParDo.of(fn)).setCoder(this.getCoder[U])
+  }
+
   // =======================================================================
   // Collection operations
   // =======================================================================
@@ -182,8 +192,9 @@ sealed trait SCollection[T] extends PCollectionWrapper[T] {
    * @group collection
    */
   def intersection(that: SCollection[T]): SCollection[T] = this.transform {
-    _.map((_, 1)).cogroup(that.map((_, 1))).flatMap { t =>
-      if (t._2._1.nonEmpty && t._2._2.nonEmpty) Seq(t._1) else Seq.empty
+    _.map((_, 1)).cogroup(that.map((_, 1))).nativeParDo { c =>
+      val t = c.element()
+      if (t._2._1.nonEmpty && t._2._2.nonEmpty) c.output(t._1)
     }
   }
 
@@ -460,8 +471,9 @@ sealed trait SCollection[T] extends PCollectionWrapper[T] {
    * @group transform
    */
   def subtract(that: SCollection[T]): SCollection[T] = this.transform {
-    _.map((_, 1)).cogroup(that.map((_, 1))).flatMap { t =>
-      if (t._2._1.nonEmpty && t._2._2.isEmpty) Seq(t._1) else Seq.empty
+    _.map((_, 1)).cogroup(that.map((_, 1))).nativeParDo { context =>
+      val t = context.element()
+      if (t._2._1.nonEmpty && t._2._2.isEmpty) context.output(t._1)
     }
   }
 
@@ -502,7 +514,10 @@ sealed trait SCollection[T] extends PCollectionWrapper[T] {
     val side = that.asListSideInput
     in
       .withSideInputs(side)
-      .flatMap((t, s) => s(side).map((t, _)))
+      .nativeParDo[(T, U)] { s =>
+        val t = s.context.element()
+        s(side).foreach(v => s.context.output((t, v)))
+      }
       .toSCollection
   }
 
