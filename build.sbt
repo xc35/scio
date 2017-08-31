@@ -328,7 +328,7 @@ lazy val scioBigQuery: Project = Project(
 
 lazy val scioBigtable: Project = Project(
   "scio-bigtable",
-  file("scio-bigtable")
+  file("io/scio-bigtable")
 ).settings(
   commonSettings ++ itSettings,
   description := "Scio add-on for Google Cloud Bigtable",
@@ -345,7 +345,7 @@ lazy val scioBigtable: Project = Project(
 
 lazy val scioCassandra2: Project = Project(
   "scio-cassandra2",
-  file("scio-cassandra2")
+  file("io/scio-cassandra2")
 ).settings(
   commonSettings ++ itSettings,
   description := "Scio add-on for Apache Cassandra 2.x",
@@ -362,7 +362,7 @@ lazy val scioCassandra2: Project = Project(
 
 lazy val scioCassandra3: Project = Project(
   "scio-cassandra3",
-  file("scio-cassandra3")
+  file("io/scio-cassandra3")
 ).settings(
   commonSettings ++ itSettings,
   description := "Scio add-on for Apache Cassandra 3.x",
@@ -380,7 +380,7 @@ lazy val scioCassandra3: Project = Project(
 
 lazy val scioElasticsearch2: Project = Project(
   "scio-elasticsearch2",
-  file("scio-elasticsearch2")
+  file("io/scio-elasticsearch2")
 ).settings(
   commonSettings,
   description := "Scio add-on for writing to Elasticsearch",
@@ -395,7 +395,7 @@ lazy val scioElasticsearch2: Project = Project(
 
 lazy val scioElasticsearch5: Project = Project(
   "scio-elasticsearch5",
-  file("scio-elasticsearch5")
+  file("io/scio-elasticsearch5")
 ).settings(
   commonSettings,
   description := "Scio add-on for writing to Elasticsearch",
@@ -434,7 +434,7 @@ lazy val scioExtra: Project = Project(
 
 lazy val scioHdfs: Project = Project(
   "scio-hdfs",
-  file("scio-hdfs")
+  file("io/scio-hdfs")
 ).settings(
   commonSettings,
   description := "Scio add-on for HDFS",
@@ -446,7 +446,7 @@ lazy val scioHdfs: Project = Project(
 
 lazy val scioJdbc: Project = Project(
   "scio-jdbc",
-  file("scio-jdbc")
+  file("io/scio-jdbc")
 ).settings(
   commonSettings,
   description := "Scio add-on for JDBC",
@@ -460,7 +460,7 @@ lazy val scioJdbc: Project = Project(
 
 lazy val scioParquet: Project = Project(
   "scio-parquet",
-  file("scio-parquet")
+  file("io/scio-parquet")
 ).settings(
   commonSettings,
   description := "Scio add-on for Parquet",
